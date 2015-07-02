@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+<!-- 订单核保定时作业 -->
+ <bean name="orderSubmitServerQuartz" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    	<property name="triggers">
+    		<list>
+    			<ref bean="orderSubmitTrigger"/>
+    		</list>
+    	</property>
+    </bean>
+    	
+    	
+    	
+    <bean name = "orderSubmitJob" class="com..socket.client.OrderSubmitJob">
+    	<property name="service" ref="orderServiceProxy"></property>
+    	<property name="agencyService" ref="agencyOrderServiceProxy"></property>
+    </bean>
+    <bean name = "orderSubmitJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+    	<property name="targetObject">
+    		<ref bean="orderSubmitJob"/>
+    	</property>
+    	
+    	<property name="targetMethod">
+    		<value>submitJob</value>
+    	</property>
+    </bean>
+    
+    <bean name = "orderSubmitTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    	<property name="jobDetail">
+    		<ref bean="orderSubmitJobDetail"/>
+    	</property>
+    	
+    	<property name="cronExpression">
+    		<value>0 0/2 * * * ?</value>
+    	</property>
+    </bean>
+	 
+	<!-- 订单核保定时作业 -->
+	
+	
+	<!-- 赠险承保定时作业 -->
+ <bean name="toriskSubmitServerQuartz" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    	<property name="triggers">
+    		<list>
+    			<ref bean="toriskSubmitTrigger"/>
+    		</list>
+    	</property>
+    </bean>
+    	
+    	
+    	
+    <bean name = "toriskSubmitJob" class="com..socket.client.ToriskSubmitJob">
+    	<property name="service" ref="orderServiceProxy"></property>
+    	<property name="agencyService" ref="agencyOrderServiceProxy"></property>
+    </bean>
+    <bean name = "toriskSubmitJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+    	<property name="targetObject">
+    		<ref bean="toriskSubmitJob"/>
+    	</property>
+    	
+    	<property name="targetMethod">
+    		<value>submitJob</value>
+    	</property>
+    </bean>
+    
+    <bean name = "toriskSubmitTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    	<property name="jobDetail">
+    		<ref bean="toriskSubmitJobDetail"/>
+    	</property>
+    	
+    	<property name="cronExpression">
+    		<value>0 0/5 * * * ?</value>
+    	</property>
+    </bean>
+	 
+	<!-- 赠险承保定时作业 -->
+	
+	<!-- 电销免费险赠险订单承保定时作业 -->
+ <bean name="freeOrderSubmitServerQuartz" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    	<property name="triggers">
+    		<list>
+    			<ref bean="freeOrderSubmitTrigger"/>
+    		</list>
+    	</property>
+    </bean>
+    	
+    <bean name = "freeOrderSubmitJob" class="com..socket.client.FreeOrderSubmitJob">
+    	<property name="service" ref="orderServiceProxy"></property>
+    	<property name="agencyService" ref="agencyOrderServiceProxy"></property>
+    </bean>
+    <bean name = "freeOrderSubmitJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+    	<property name="targetObject">
+    		<ref bean="freeOrderSubmitJob"/>
+    	</property>
+    	
+    	<property name="targetMethod">
+    		<value>submitJob</value>
+    	</property>
+    </bean>
+    
+    <bean name = "freeOrderSubmitTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    	<property name="jobDetail">
+    		<ref bean="freeOrderSubmitJobDetail"/>
+    	</property>
+    	
+    	<property name="cronExpression">
+    		<value>0 0/1 * * * ?</value>
+    	</property>
+    </bean>
+	 
+	<!-- 电销免费险赠险订单承保定时作业 -->
+	
+	<!-- 订单交易定时作业 -->
+	 <bean name="orderRequestServerQuartz" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    	<property name="triggers">
+    		<list>
+    			<ref bean="orderRequestTrigger"/>
+    		</list>
+    	</property>
+    </bean>
+    	
+    	
+    	
+    <bean name = "orderRequestJob" class="com..socket.client.OrderRequestJob">
+    	<property name="service" ref="orderServiceProxy"></property>
+    	<property name="agencyService" ref="agencyOrderServiceProxy"></property>
+    </bean>
+    <bean name = "orderRequestJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+    	<property name="targetObject">
+    		<ref bean="orderRequestJob"/>
+    	</property>
+    	
+    	<property name="targetMethod">
+    		<value>requestJob</value>
+    	</property>
+    </bean>
+    
+    <bean name = "orderRequestTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    	<property name="jobDetail">
+    		<ref bean="orderRequestJobDetail"/>
+    	</property>
+    	
+    	<property name="cronExpression">
+    		<value>0 0/10 * * * ?</value>
+    	</property>
+    </bean>
+    
+    <!-- 密钥更新定时作业 -->
+    
+     <bean name="keyRequestServerQuartz" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+    	<property name="triggers">
+    		<list>
+    			<ref bean="keyRequestTrigger"/>
+    		</list>
+    	</property>
+    </bean>
+    	
+    	
+    	
+    <bean name = "keyRequestJob" class="com..socket.client.KeyJob">
+    	
+    </bean>
+    <bean name = "keyRequestJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+    	<property name="targetObject">
+    		<ref bean="keyRequestJob"/>
+    	</property>
+    	
+    	<property name="targetMethod">
+    		<value>key</value>
+    	</property>
+    </bean>
+    
+    <bean name = "keyRequestTrigger" class="org.springframework.scheduling.quartz.CronTriggerBean">
+    	<property name="jobDetail">
+    		<ref bean="keyRequestJobDetail"/>
+    	</property>
+    	
+    	<property name="cronExpression">
+    		<value>0 0 0/24 * * ?</value>
+    	</property>
+    </bean>
+</beans>
