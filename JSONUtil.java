@@ -177,7 +177,7 @@ public class JSONUtil {
 		{
 			//System.out.println("converse"+source.getClass().getName());
 			MenuTree menuTree ;
-			if(source instanceof com.grandsys.ap.model.commons.MenuTree){
+			if(source instanceof com..ap.model.commons.MenuTree){
 			menuTree= (MenuTree) source;
 			
 			if("TSysDepartment".equals(menuTree.getMenuMode()) && "checked".equals(name)){
