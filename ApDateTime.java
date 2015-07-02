@@ -1,6 +1,3 @@
-
-package com.grandsys.commons;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -13,7 +10,7 @@ import java.util.Vector;
  * 本 API 主要针对<b>日期</b> or <b>时间</b>的运算,时常会用到的,而开发出来的 mrthod<br>
  * 所有提供出来的 method 全部均设为 static<br>
  *
- * @author  陈彦男
+ * 
  * @version 1.0
 */
 public class ApDateTime {
