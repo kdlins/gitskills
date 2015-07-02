@@ -137,3 +137,7 @@ alter table TB_UserRole
 alter table TB_Users
    add constraint FK_TB_USERS_REFERENCE_TB_DEPAR foreign key (department_id)
       references TB_Department (department_id);
+
+表说明：权限模块总共就6张表，即部门表、用户表、角色表、用户角色表、菜单表、菜单角色表(包含按钮权限)。用户表和角色表之间的关系是通用的多对多的关系，没什么好说的。看看TB_MenuRole表，这个表用来存储角色的菜单权限和按钮权限，其中role_type取值为menu和button，如果是menu，则此行记录用于存储菜单权限，button_id为空；如果是button，则此行记录用于存储菜单下的某一个按钮的权限，menu_id为按钮所在的菜单id，button_id为对应的按钮id。还有一个问题就是按钮的id从哪里来？是否还应该有一个储存按钮ID的表呢？答案是不需要，后面会介绍。
+
+在点击设置按操作的时候传递一个菜单url，然后在代码里面通过反射得到所有的按钮，然后勾选按钮后保存到数据库。注意一个页面的按钮的ID不会重复，所以通过这样可以取到唯一的按钮，而在数据表TB_MenuRole中保存的如果是按钮权限，是有保存Menu_Id的，所以不必担心不同页面的问题。这样设计的好处是当程序员在页面上面新增删除按钮后不用修改配置，通过反射即可加载页面的即时按钮个数。
