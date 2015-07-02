@@ -434,8 +434,8 @@ System.out.println("e:::"+e);
         
         int weekDay = calendar.get(java.util.Calendar.DAY_OF_WEEK);
         
-        String start = com.grandsys.commons.ApDateTime.getDateDiff_ForDay(formatLayout, sdf.format(calendar.getTime()), weekDay*(-1)+1);
-        String end = com.grandsys.commons.ApDateTime.getDateDiff_ForDay(formatLayout, sdf.format(calendar.getTime()), 7-weekDay);
+        String start = com..commons.ApDateTime.getDateDiff_ForDay(formatLayout, sdf.format(calendar.getTime()), weekDay*(-1)+1);
+        String end = com..commons.ApDateTime.getDateDiff_ForDay(formatLayout, sdf.format(calendar.getTime()), 7-weekDay);
         
         Vector<String> vv = new Vector<String>();
         vv.add(start);
@@ -607,13 +607,13 @@ System.out.println("e:::"+e);
  * <pre>
  *  范例说明:
         try{
-            System.out.println("11>>"+com.grandsys.commons.ApDateTime.changeYYtoYYYY("0901122", 0, 3));
-            System.out.println("22>>"+com.grandsys.commons.ApDateTime.changeYYtoYYYY("90-11-22", 0, 2));
-            System.out.println("33>>"+com.grandsys.commons.ApDateTime.changeYYtoYYYY("1/11/22", 0, 1));
-            System.out.println("44>>"+com.grandsys.commons.ApDateTime.changeYYtoYYYY("-10/11/22", 0, 3));
+            System.out.println("11>>"+com..commons.ApDateTime.changeYYtoYYYY("0901122", 0, 3));
+            System.out.println("22>>"+com..commons.ApDateTime.changeYYtoYYYY("90-11-22", 0, 2));
+            System.out.println("33>>"+com..commons.ApDateTime.changeYYtoYYYY("1/11/22", 0, 1));
+            System.out.println("44>>"+com..commons.ApDateTime.changeYYtoYYYY("-10/11/22", 0, 3));
             
-            System.out.println("AA>>"+com.grandsys.commons.ApDateTime.changeYYYYtoYY("2004/11/22", 0, 4));
-            System.out.println("BB>>"+com.grandsys.commons.ApDateTime.changeYYYYtoYY("1834/11/22", 0, 4));
+            System.out.println("AA>>"+com..commons.ApDateTime.changeYYYYtoYY("2004/11/22", 0, 4));
+            System.out.println("BB>>"+com..commons.ApDateTime.changeYYYYtoYY("1834/11/22", 0, 4));
         }
         catch(Exception e){
 System.out.println(">>"+e);            
@@ -818,14 +818,14 @@ System.out.println(">>>"+e);
  * <pre>
  *  范例说明:
         try{
-            System.out.println( "11 >>" + com.grandsys.commons.ApDateTime.putDateSelectOption("BYyyyyMMdd", "20030504", "yyyy-MM-dd", "", 2) );
-            System.out.println( "22 >>" + com.grandsys.commons.ApDateTime.putDateSelectOption("BYyyyyMM", "20031004", "yyyy-MM", "200312", -3) );
-            System.out.println( "33 >>" + com.grandsys.commons.ApDateTime.putDateSelectOption("BYyyyyMM", "20040304", "yyyy-MM", "200404", 3) );
+            System.out.println( "11 >>" + com..commons.ApDateTime.putDateSelectOption("BYyyyyMMdd", "20030504", "yyyy-MM-dd", "", 2) );
+            System.out.println( "22 >>" + com..commons.ApDateTime.putDateSelectOption("BYyyyyMM", "20031004", "yyyy-MM", "200312", -3) );
+            System.out.println( "33 >>" + com..commons.ApDateTime.putDateSelectOption("BYyyyyMM", "20040304", "yyyy-MM", "200404", 3) );
             
-            Vector vv = com.grandsys.commons.ApDateTime.putDateSelectOption("BYyyyyMMdd", "20030504", "yyyy-MM-dd", "", 2);
-            System.out.println("AA >>" + com.grandsys.commons.ApDateTime.changeYYYYtoYY((ArrayList)vv.get(0), 0, 4));
+            Vector vv = com..commons.ApDateTime.putDateSelectOption("BYyyyyMMdd", "20030504", "yyyy-MM-dd", "", 2);
+            System.out.println("AA >>" + com..commons.ApDateTime.changeYYYYtoYY((ArrayList)vv.get(0), 0, 4));
             
-            System.out.println( "BB >>" + com.grandsys.commons.ApDateTime.putDateSelectOption("XXX???", "20040304", "yyyy-MM", "200404", 3) );
+            System.out.println( "BB >>" + com..commons.ApDateTime.putDateSelectOption("XXX???", "20040304", "yyyy-MM", "200404", 3) );
         }
         catch(Exception e){
 System.out.println(">>>"+e);            
@@ -903,14 +903,14 @@ System.out.println("e:::"+e);
 */
 static public Vector<String> getStartEndDateYY(String startDate, String endDate) throws Exception {
         
-            String ss = com.grandsys.commons.ApDateTime.changeYYtoYYYY(startDate, 0, 3);
-            String ee = com.grandsys.commons.ApDateTime.changeYYtoYYYY(endDate, 0, 3);
+            String ss = com..commons.ApDateTime.changeYYtoYYYY(startDate, 0, 3);
+            String ee = com..commons.ApDateTime.changeYYtoYYYY(endDate, 0, 3);
             
-            Vector<String> vv = com.grandsys.commons.ApDateTime.getStartEndDateYYYY(ss, ee);
+            Vector<String> vv = com..commons.ApDateTime.getStartEndDateYYYY(ss, ee);
             Vector<String> vvData = new Vector<String>();
             for(int i=0, nnn=vv.size(); i<nnn; i+=2){
-                vvData.add(com.grandsys.commons.ApDateTime.changeYYYYtoYY((String)vv.get(i), 0, 4));
-                vvData.add(com.grandsys.commons.ApDateTime.changeYYYYtoYY((String)vv.get(i+1), 0, 4));
+                vvData.add(com..commons.ApDateTime.changeYYYYtoYY((String)vv.get(i), 0, 4));
+                vvData.add(com..commons.ApDateTime.changeYYYYtoYY((String)vv.get(i+1), 0, 4));
             }
             return(vvData);
     }
@@ -932,7 +932,7 @@ static public Vector<String> getStartEndDateYY(String startDate, String endDate)
         
             Vector<String> vvData = new Vector<String>();
             for(int i=0; i<1200; i++){
-                Vector<String> vv = com.grandsys.commons.ApDateTime.getDateDiff_ForMonth("yyyyMM", startDate, i);
+                Vector<String> vv = com..commons.ApDateTime.getDateDiff_ForMonth("yyyyMM", startDate, i);
                 
                 String ss = (i == 0) ?  startDate : (String)vv.get(0);
                 String ee = (endDate.compareTo((String)vv.get(1)) <= 0) ?  endDate : (String)vv.get(1);
