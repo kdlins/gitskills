@@ -1,3 +1,38 @@
+如下的代码是线程安全的懒汉式单例类的实现：
+ 
+
+
+
+[java] view plaincopy
+01.public class Singleton {  
+02.    private static Singleton instance;  
+03.    private final static Object syncLock = new Object();  
+04.     
+05.    private Singleton() {  
+06.         
+07.    }  
+08.     
+09.    public static Singleton getInstance(){  
+10.        if (instance == null) {  
+11.            synchronized (syncLock) {  
+12.                if (instance == null) {  
+13.                    instance = new Singleton();  
+14.                }  
+15.            }  
+16.        }  
+17.         
+18.        return instance;  
+19.    }  
+20.}  
+ 
+
+ 
+ 
+需要注意的是，synchronized同步块处括号中的锁定对象采用的是一个无关的Object类实例。将它作为锁而不是通常synchronized所用的this，其原因是getInstance方法是一个静态方法，在它的内部不能使用未静态的或者未实例化的类对象（避免空指针异常）。同时也没有直接使用instance作为锁定的对象，是因为加锁之时，instance可能还没实例化（同样是为了避免空指针异常）。
+ 
+此外，单例类中不建议将getInstance方法修饰为synchronized方法，其原因是一旦这样做了，其效果就跟《大话设计模式》书中21.5小节的示例是一样的了。这种做法会在每次调用getInstance方法时，都需要加锁，与上例相比效率更低。
+
+
 使用synchronized：
  
 
