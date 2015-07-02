@@ -1,0 +1,45 @@
+使用synchronized：
+ 
+
+
+
+[java] view plaincopy
+01.class MyCache{  
+02.    private Map<String,Object> cache = new HashMap<String,Object>();  
+03.    public synchronized Object getObject(String key){  
+04.        //加上锁是为了避免多个线程在得到的value都为null时，都同时去访问数据库  
+05.        Object value=cache.get(key);  
+06.        if(value==null){  
+07.            value="aaaaa";//其实是从数据库中得到相关的记录  
+08.            cache.put(key, value);  
+09.        }  
+10.        return value;  
+11.    }  
+12.}  
+使用读写锁：
+ 
+
+
+
+[java] view plaincopy
+01.class MyCache1{  
+02.    private Map<String,Object> cache = new HashMap<String,Object>();  
+03.    private ReadWriteLock rwl = new ReentrantReadWriteLock();  
+04.    public Object getObject(String key){  
+05.        rwl.readLock().lock();  
+06.        Object value=cache.get(key);  
+07.        if(value==null){  
+08.            rwl.readLock().unlock();//必须首先解锁才能获取写锁  
+09.            rwl.writeLock().lock();  
+10.            if(value==null){//这里为什么还要判断，避免多个写锁被阻塞(因为只能有一个写锁是互斥的)的时候，重复对value进行赋值，从而访问数据库  
+11.                value="aaaaa";//其实是从数据库中得到相关的记录  
+12.                cache.put(key, value);  
+13.            }  
+14.            //对锁进行降级，把写锁降级为读锁  
+15.            rwl.readLock().lock();//重新获取读锁不放弃写锁  
+16.            rwl.writeLock().unlock();//写锁解除，读锁仍在  
+17.        }  
+18.        rwl.readLock().unlock();  
+19.        return value;  
+20.    }  
+21.}  
