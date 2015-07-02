@@ -43,3 +43,106 @@
 19.        return value;  
 20.    }  
 21.}  
+1 package com.thread;
+ 2 
+ 3 import java.util.HashMap;
+ 4 import java.util.Map;
+ 5 import java.util.concurrent.locks.ReadWriteLock;
+ 6 import java.util.concurrent.locks.ReentrantReadWriteLock;
+ 7 
+ 8 public class CacheDemo {
+ 9     private Map<String, Object> map = new HashMap<String, Object>();//缓存器
+10     private ReadWriteLock rwl = new ReentrantReadWriteLock();
+11     public static void main(String[] args) {
+12         
+13     }
+14     public Object get(String id){
+15         Object value = null;
+16         rwl.readLock().lock();//首先开启读锁，从缓存中去取
+17         try{
+18             value = map.get(id); 
+19             if(value == null){  //如果缓存中没有释放读锁，上写锁
+20                 rwl.readLock().unlock();
+21                 rwl.writeLock().lock();
+22                 try{
+23                     if(value == null){
+24                         value = "aaa";  //此时可以去数据库中查找，这里简单的模拟一下
+25                     }
+26                 }finally{
+27                     rwl.writeLock().unlock(); //释放写锁
+28                 }
+29                 rwl.readLock().lock(); //然后再上读锁
+30             }
+31         }finally{
+32             rwl.readLock().unlock(); //最后释放读锁
+33         }
+34         return value;
+35     }
+36 
+37 }
+
+
+1 package com.thread;
+ 2 
+ 3 import java.util.Random;
+ 4 import java.util.concurrent.locks.ReentrantReadWriteLock;
+ 5 
+ 6 public class ReadWriteLockTest {
+ 7     public static void main(String[] args) {
+ 8         final Queue3 q3 = new Queue3();
+ 9         for(int i=0;i<3;i++)
+10         {
+11             new Thread(){
+12                 public void run(){
+13                     while(true){
+14                         q3.get();                        
+15                     }
+16                 }
+17                 
+18             }.start();
+19         }
+20         for(int i=0;i<3;i++)
+21         {        
+22             new Thread(){
+23                 public void run(){
+24                     while(true){
+25                         q3.put(new Random().nextInt(10000));
+26                     }
+27                 }            
+28                 
+29             }.start();    
+30         }
+
+31     }
+32 }
+33 
+34 class Queue3{
+35     private Object data = null;//共享数据，只能有一个线程能写该数据，但可以有多个线程同时读该数据。
+36     private ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
+37     public void get(){
+38         rwl.readLock().lock();//上读锁，其他线程只能读不能写
+39         System.out.println(Thread.currentThread().getName() + " be ready to read data!");
+40         try {
+41             Thread.sleep((long)(Math.random()*1000));
+42         } catch (InterruptedException e) {
+43             e.printStackTrace();
+44         }
+45         System.out.println(Thread.currentThread().getName() + "have read data :" + data);        
+46         rwl.readLock().unlock(); //释放读锁，最好放在finnaly里面
+47     }
+48     
+49     public void put(Object data){
+50 
+51         rwl.writeLock().lock();//上写锁，不允许其他线程读也不允许写
+52         System.out.println(Thread.currentThread().getName() + " be ready to write data!");                    
+53         try {
+54             Thread.sleep((long)(Math.random()*1000));
+55         } catch (InterruptedException e) {
+56             e.printStackTrace();
+57         }
+58         this.data = data;        
+59         System.out.println(Thread.currentThread().getName() + " have write data: " + data);                    
+60         
+61         rwl.writeLock().unlock();//释放写锁    
+62     }
+63 }
