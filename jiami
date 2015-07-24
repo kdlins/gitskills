@@ -1,0 +1,233 @@
+public abstract class CipherService {
+	protected Logger logger = Logger.getLogger(CipherService.class);
+	/*
+	 * 返回需要处理的密文数据
+	 */
+	private byte[] text;
+	/*
+	 * 需要发送的明文
+	 */
+	private String sendText;
+	/*
+	 * 需要发送的密文数据
+	 */
+	private byte[] sendCode;
+	/*
+	 * 业务处理类
+	 */
+	private SocketService socketService;
+	/*
+	 * 需要发送的头文件
+	 */
+	private String[] header;
+	/**
+	 * 如果当前密钥解密失败，则使用备用密钥解密
+	 */
+	private String bakKey;
+	/**
+	 * 只处理接收的数据
+	 */
+	public CipherService(){
+		this(null);
+	}
+	/**
+	 * 处理发送与接收的数据
+	 * @param sendText
+	 */
+	public CipherService(String sendText){
+		this.sendText = sendText;//初始化需要发送的明文数据
+		//业务处理类
+		this.socketService =(SocketService) BeanFactory.getBeanFactory().getBean("socketServiceProxy");
+		initBakKey();//初始化备用密钥
+	}
+	/**
+	 * 请求返回返的业务处理
+	 * @param proText 密文
+	 * @return
+	 */
+	public String runService(byte[] proText){
+		this.text = proText;
+		String result = "";
+		if(text.equals("")){
+			//如果得到的请求信息为空，直接返回给客户端
+			result = "请求信息为空，直接返回";
+		}else{
+			//解密接收到的信息
+			String decodeStr = encryptByEbao(text);
+			if(decodeStr == null || decodeStr.equals("")){
+				logger.error("第一次密解失败,使用备用密钥");
+				decodeStr = encryptByEbaoAndBakKey(text);
+				if(Util.objToString(decodeStr).equals("")){
+					logger.error("第二次密解失败,直接返回");
+					result = "二次解密失败";
+					//解密异常，返回通知道客户端
+					return result;
+				}
+			}
+			//解密成功，直接返回
+			result = orderService(decodeStr);
+		}
+		return result;
+	}
+	/**
+	 * 业务处理
+	 * @param info请求信息
+	 * @return处理结果
+	 */
+	protected abstract String orderService(String info);
+	/**
+	 * 生成头文件
+	 */
+	protected  String[] customerCreateHeader(){
+		return null;
+	}
+	/**
+	 * 初始化备用密钥
+	 */
+	protected void initBakKey(){
+		return;
+	}
+	/**
+	 * 密文解密
+	 * @param str密文
+	 * @return明文
+	 */
+	private String encrypt(String str){
+		try {
+			logger.debug("收到密文：" + str);
+			String temp = EncryptTool.getDeCode(str, getDecodeKey());
+			logger.debug("解密密文为:" + temp);
+			return temp;
+		} catch (Exception e) {
+			logger.error("解密密文失败",e);
+		}
+		return null;
+	}
+	/**
+	 * 密文解密
+	 * @param str密文
+	 * @return明文
+	 */
+	private String encryptByEbao(byte[] str){
+		try {
+			logger.debug("收到密文：" + str);
+			String temp = EncryptTool.getDeCodeByEbao(str);
+			logger.debug("解密密文为:" + temp);
+			return temp;
+		} catch (Exception e) {
+			logger.error("解密密文失败");
+		}
+		return null;
+	}
+	/**
+	 * 密文解密通过备用密钥
+	 * @param str密文
+	 * @return明文
+	 */
+	private String encryptByEbaoAndBakKey(byte[] str){
+		if(Util.objToString(this.bakKey).equals("")){
+			return "";
+		}
+		try {
+			logger.debug("收到密文：" + str);
+			String temp = EncryptTool.getDeCodeByEbaoAndKey(str, this.bakKey);
+			logger.debug("解密密文为:" + temp);
+			return temp;
+		} catch (Exception e) {
+			logger.error("解密密文失败",e);
+		}
+		return null;
+	}
+	/**
+	 * 得到密钥
+	 * @return
+	 */
+	private String getDecodeKey(){
+		String key = "";
+		try {
+			key = this.socketService.findKey();
+		} catch (Exception e) {
+			logger.error("从数据库取密钥异常:",e);
+		}
+		return key;
+		//return "ec1ccdd620983ece";
+		//return "ec1ccdd620983ece";
+		//3d70314a83ab5b2a
+	}
+	
+	/**
+	 * 加密数据
+	 * @param str
+	 * @return
+	 */
+	private String encode(String str){
+		String temp = "";
+		if(str == null){
+			return temp;
+		}
+		try {
+			temp = EncryptTool.getEnCode(str, getDecodeKey());
+		} catch (Exception e) {
+			logger.error("加密数据异常,数据:" + str,e);
+		}
+		return temp;
+	}
+	/**
+	 * 加密数据
+	 * @param str
+	 * @return
+	 */
+	private byte[] encodeByEbao(String str){
+		byte[] temp =null;
+		if(str == null){
+			return temp;
+		}
+		try {
+			temp = EncryptTool.getEncodeByEbao(str);
+		} catch (Exception e) {
+			logger.error("加密数据异常,数据:" + str,e);
+		}
+		return temp;
+	}
+	/**
+	 * 返回需要发送的密文
+	 * @return
+	 */
+	public byte[] getSendCode() {
+		if(this.sendCode == null){
+			this.sendCode = encodeByEbao(this.sendText);//加密数据
+		}
+		return sendCode;
+	}
+	/**
+	 * 返回需要发送的头文件
+	 * @return
+	 */
+	public String[] getHeader() {
+		if(this.header == null){
+			String[] h = customerCreateHeader();//用户客制化头文件
+			if(h != null){
+				this.header = new String[h.length];
+				for (int i = 0; i < h.length; i++) {
+					header[i] = h[i];
+				}
+			}
+		}
+		return header;
+	}
+	/**
+	 * 需要发送的明文
+	 * @return
+	 */
+	public String getSendText() {
+		return sendText;
+	}
+	/**
+	 * 设置备用密钥
+	 * @param bakKey
+	 */
+	public void setBakKey(String bakKey) {
+		this.bakKey = bakKey;
+	}
+	
+}
