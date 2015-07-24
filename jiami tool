@@ -1,0 +1,490 @@
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.DESKeySpec;
+
+import org.apache.log4j.Logger;
+
+
+/**
+ * Filename:	EncryptTool
+ */
+public class EncryptTool {
+	
+	private static String code = "UTF-8";
+	private static String method = "DES";
+	/**
+	 * 密钥文件路径
+	 */
+	private static String key_file_path = "/DesKey.des";
+	/**
+	 * 密钥交易中，备用密钥更新的临时文件的路径
+	 */
+	private static String update_key_file_path = "/DesKeyUpdate.des";
+	protected static Logger log = Logger.getLogger(EncryptTool.class);
+
+	/**
+	 * 生成指定加密算法的密钥。
+	 * 
+	 * @param algorithm
+	 *            加密算法。
+	 * @return 生成的密钥。
+	 * @throws NoSuchAlgorithmException
+	 *             当找不到指定的加密算法时。
+	 */
+	public static byte[] generateSecretKey(String algorithm) throws NoSuchAlgorithmException {
+		byte[] result = null;
+
+		// 生成一个可信任的随机数源
+		SecureRandom sr = new SecureRandom();
+		// 为我们选择的DES算法生成一个KeyGenerator对象
+		KeyGenerator kg;
+		kg = KeyGenerator.getInstance(algorithm);
+		kg.init(sr);
+		// 生成密钥
+		SecretKey key = kg.generateKey();
+		// 返回密钥的字符串形式
+		result = key.getEncoded();
+
+		return result;
+	}
+
+	/* *//**编码
+	 * @param bstr
+	 * @return
+	 *//*
+	public static String encode(byte[] bstr){   
+		String strResult =  new BASE64Encoder().encode(bstr);
+		return strResult;   
+	 }   
+		  
+    *//**  
+     * 解码 
+     * @param str  
+     * @return string  
+     *//*  
+     public static byte[] decode(String str){   
+	    byte[] bt = null;   
+	    try {   
+	        BASE64Decoder decoder = new BASE64Decoder();   
+	        bt = decoder.decodeBuffer(str);   
+	    } catch (Exception e) {   
+	        e.printStackTrace();   
+	    }   
+	        return bt;   
+	}  */ 
+
+	
+	
+	/**
+	 * 将密钥由字符串形式转换成字节形式。
+	 * 
+	 * @param secretKey
+	 *            要转换的密钥。
+	 * @return 密钥的字节形式。转换使用的字符集不可用时返回null。
+	 */
+	public static byte[] getSecretKeyInByteArray(String secretKey) {
+		byte[] result = null;
+
+		try {
+			result = secretKey.getBytes(code);
+		} catch (UnsupportedEncodingException e) {
+			log.error("Failed to get byte array form of secret key.", e);
+		}
+
+		return result;
+	}
+	
+	/**
+	 * 对明文加密。
+	 * 
+	 * @param plainText
+	 *            要加密的明文。
+	 * @param key
+	 *            密钥。
+	 * @param transformation
+	 *            加密算法。
+	 * @return 加过密的密文。
+	 * @throws EncryptionException
+	 *             当加密过程中出现任何错误时。已知的错误有：非法的密钥，未知的加密算法。
+	 */
+	private static byte[] encrypt(byte[] plainText, byte[] key, String transformation)
+			throws Exception {
+		byte[] result = null;
+
+		try {
+			// 产生一个可信任的随机数源
+			SecureRandom sr = new SecureRandom();
+			// 从原始密钥数据创建DESKeySpec对象
+			DESKeySpec dks = new DESKeySpec(key);
+			// 创建一个密钥工厂，然后用它把DESKeySpec转换成Secret Key对象
+			SecretKeyFactory keyFactory = SecretKeyFactory
+					.getInstance(transformation);
+			SecretKey keySpec = keyFactory.generateSecret(dks);
+			// Cipher对象实际完成加密操作  DES/ECB/PKCS5Padding
+			Cipher cipher = Cipher.getInstance("DES/ECB/PKCS5Padding");
+			// 用密钥初始化Cipher对象
+			cipher.init(Cipher.ENCRYPT_MODE, keySpec, sr);
+			// 执行加密操作
+			result = cipher.doFinal(plainText);
+		} catch (Exception e) {
+			throw new Exception("Encryption failed.", e);
+		}
+
+		return result;
+	}
+	
+	/**
+	 * 对明文加密。
+	 * 
+	 * @param plainText
+	 *            要加密的明文。
+	 * @return 加过密的密文。
+	 * @throws EncryptionException
+	 *             当加密过程中出现任何错误时。已知的错误有：非法的密钥，未知的加密算法。
+	 */
+	private static byte[] encrypt(byte[] plainText,String filename)
+			throws Exception {
+		byte[] result = null;
+
+		try {
+			// 产生一个可信任的随机数源
+			SecureRandom sr = new SecureRandom();
+			// 从原始密钥数据创建DESKeySpec对象
+			
+			
+			
+			ObjectInputStream keyStream = new ObjectInputStream(
+
+		     new FileInputStream(filename));
+
+		     SecretKey desKey = (SecretKey) keyStream.readObject();
+
+		     keyStream.close();
+			
+			
+			// Cipher对象实际完成加密操作  DES/ECB/PKCS5Padding
+			Cipher cipher = Cipher.getInstance("DES/ECB/PKCS5Padding");
+			// 用密钥初始化Cipher对象
+			cipher.init(Cipher.ENCRYPT_MODE, desKey, sr);
+			// 执行加密操作
+			result = cipher.doFinal(plainText);
+		} catch (Exception e) {
+			throw new Exception("Encryption failed.", e);
+		}
+
+		return result;
+	}
+	
+	
+	/**
+	 * 对密文解密。
+	 * 
+	 * @param cryptoText
+	 *            要解密的密文。
+	 * @param key
+	 *            密钥。
+	 * @param transformation
+	 *            加密算法。
+	 * @return 解密的明文。
+	 * @throws DecryptionException
+	 *             当解密出错时。
+	 */
+	private static byte[] decrypt(byte[] cryptoText, byte[] key, String transformation)
+			throws Exception {
+		byte[] result = null;
+
+		try {
+			// 产生一个可信任的随机数源
+			SecureRandom sr = new SecureRandom();
+			// 从原始密钥数据创建DESKeySpec对象
+			DESKeySpec dks = new DESKeySpec(key);
+			// 创建一个密钥工厂，然后用它把DESKeySpec转换成Secret Key对象
+			SecretKeyFactory keyFactory = SecretKeyFactory
+					.getInstance(transformation);
+			SecretKey keySpec = keyFactory.generateSecret(dks);
+			// Cipher对象实际完成加密操作
+			Cipher cipher = Cipher.getInstance(transformation);
+			// 用密钥初始化Cipher对象
+			cipher.init(Cipher.DECRYPT_MODE, keySpec, sr);
+			// 执行解密操作
+			result = cipher.doFinal(cryptoText);
+		} catch (Exception e) {
+			if(e instanceof IllegalStateException || e instanceof IllegalBlockSizeException || e instanceof BadPaddingException){
+				throw new Exception("secretKey is not Correct, Decryption failed.", e);
+				
+			}else{
+				throw new Exception("Decryption failed.", e);
+			}
+		}
+
+		return result;
+	}
+	
+	/**
+	 * 对密文解密。
+	 * 
+	 * @param cryptoText
+	 *            要解密的密文。
+	 * @return 解密的明文。
+	 * @throws DecryptionException
+	 *             当解密出错时。
+	 */
+	private static byte[] decrypt(byte[] cryptoText,String keyPath)
+			throws Exception {
+		byte[] result = null;
+
+		try {
+			// 产生一个可信任的随机数源
+			SecureRandom sr = new SecureRandom();
+			// 从原始密钥数据创建DESKeySpec对象
+			// 从原始密钥数据创建DESKeySpec对象
+			
+			//测试:
+			//url =  EncryptTool.class.getResource("/DesKeyTest.des");
+			//System.out.println("测试解密密钥:9d70d5107325f77a" );
+			
+			ObjectInputStream keyStream = new ObjectInputStream(
+		     new FileInputStream(keyPath));
+
+		     SecretKey desKey = (SecretKey) keyStream.readObject();
+
+		     keyStream.close();
+			
+			
+			// Cipher对象实际完成加密操作  DES/ECB/PKCS5Padding
+			Cipher cipher = Cipher.getInstance("DES/ECB/PKCS5Padding");
+			// 用密钥初始化Cipher对象
+			cipher.init(Cipher.DECRYPT_MODE, desKey, sr);
+			// 执行解密操作
+			result = cipher.doFinal(cryptoText);
+		} catch (Exception e) {
+			if(e instanceof IllegalStateException || e instanceof IllegalBlockSizeException || e instanceof BadPaddingException){
+				throw new Exception("secretKey is not Correct, Decryption failed.", e);
+				
+			}else{
+				throw new Exception("Decryption failed.", e);
+			}
+		}
+
+		return result;
+	}
+	
+	public static byte[] getBytesFromString(String string){
+		if (string == null || string.length()==0 ) {
+			return null;
+		}
+		 byte[] bs = DecConverter.convertStrToBytes(DecConverter.convertBytesToStr(string.getBytes()));
+		 return bs;
+	}
+	
+	/**加密字符串 通过密钥加密
+	 * @param str 原字符串
+	 * @param key 密钥
+	 * @return 加密后的字符串
+	 * @throws Exception
+	 */
+	public static String getEnCode(String str, String key) throws Exception{
+		String strResult = "";
+		//密钥转换成字节数组
+		byte[] keys = getBytesFromString(key);
+		//加密
+		byte[] endcs = encrypt(str.getBytes(code), keys, method);
+		//字节数据转换成字串
+		strResult =DecConverter.convertBytesToStr(endcs);
+		return strResult;
+	}
+	/**
+	 * 加密字符串 通过加密文件加密
+	 * @param str需要加密的明文
+	 * @return
+	 * @throws Exception
+	 */
+	public static byte[] getEncodeByEbao(String str)throws Exception{
+		URL url =  EncryptTool.class.getResource(key_file_path);//密钥文件
+		//加密
+		byte[] code = encrypt(str.getBytes("utf-8"),url.getPath());
+		return code;
+	}
+	/**
+	 * 返回易宝定义的密文头文件
+	 * @param value密文长度
+	 * @return
+	 */
+	public static String getHeaderEbao(int value){
+		return DecConverter.getStrlen(value, 6);
+	}
+	public static void main(String[] args) throws Exception {
+		String str = "解密字符串，通过加密文件解密";
+		System.out.println(str);
+		byte[] temp = getEncodeByEbao(str);
+		
+		String aa = getDeCodeByEbao(temp);
+		System.out.println(aa);
+	}
+	/**
+	 * 解密字符串，通过加密文件解密
+	 * @param str需要解密的字串
+	 * @return
+	 * @throws Exception
+	 */
+	public static String getDeCodeByEbao(byte[] bytes)throws Exception{
+		URL url =  EncryptTool.class.getResource(key_file_path);
+		byte[] code = decrypt(bytes,url.getPath());
+		String result = new String(code, "utf-8");
+		return result;
+	}
+	/**
+	 * 通过key生成新的密钥文件解密字符串，通过加密文件解密
+	 * @param str需要解密的字串
+	 * @param新的密钥，用于生成密钥文件
+	 * @return
+	 * @throws Exception
+	 */
+	public static String getDeCodeByEbaoAndKey(byte[] bytes,String key)throws Exception{
+		URL url =  EncryptTool.class.getResource(update_key_file_path);
+		String fileName = "";
+		if(url == null){
+			url = EncryptTool.class.getResource(key_file_path);
+			fileName = url.getPath();
+			fileName = fileName.replaceAll(key_file_path, update_key_file_path);
+		}else{
+			fileName = url.getPath();
+		}
+		
+		File file = new File(fileName);
+	   // file.deleteOnExit();//删除现有的密钥文件
+		//生成密钥文件
+		createKeyFile(key, fileName);
+		byte[] code = decrypt(bytes,fileName);
+		String result = new String(code);
+		return result;
+	}
+	/**解密字符串
+	 * @param str 密文
+	 * @param key 密钥
+	 * @return 解密后的字符串
+	 * @throws Exception
+	 */
+	public static String getDeCode(String str, String key) throws Exception{
+		String strResult = "";
+		//密钥转换成字节数据
+		byte[] keys = getBytesFromString(key);
+		//密文转换成字节数据
+		byte[] strTemp = DecConverter.convertStrToBytes(str);
+		//解密
+		byte[] decrypt = decrypt(strTemp,keys , method);
+		strResult = new String(decrypt,code);
+		return strResult;
+	}
+	
+	public static void main11(String[] args) throws Exception{
+		String str = "<o_cltsexdsc_02>女</o_cltsexdsc_02>";
+		String encStr = "a05bea4d28d8a96fd0e10b38033b8d353b15348b79ba6eaab695fb0f6f4370a2d2957af98c97be61a98cd3eed4b261508dbdb68e58e937508df0d9480ba6eb4527227d162214e9a7724073278db6550dd372d7ff9b3ef2742d6c840e6966e4a6d7d7a53c49b08498e9ecfe31faf2af0bf65feb09176ef0a5ff308939698a99989cceecef93fc3862c04032df02885c835e70bb6988f5c0e05b5d62e57b1a0e7087d0e82e1071d101e4bf761b14185a8598326b61641ac3274b18b2e1d2774e97928002b051ff0f4e196facdc9329040d86a0b3644b675d6149d454a840b048182672c40d9e9bc8ee2a7c2eaf680a8ea4d76e1fb390a15f74b041af6cee17cc5f4135aab79ed48a898ea22769804c9a48a912e300e793c9d16136b88419b48232bb6af8fe01d2f60781a12be7a20475ce3312c5271353b5c85452dc29366b4c35ba2b206516ccb7f155ddd35d1d08503640e626dc060d121da1514f54916606d6f1e94e861f8b28e425b0eb006dec18aff4bc917a6a4d519380dc21fda21d2c987b9005bcb40930a665b734f9e527590c4135aab79ed48a89680524d73066358d89635d87fdfc945832a3182460a53459d6ea0a8cabe12375aa7ef126ddce165f6c7d45ec565c28cc7c6f44fd5d517ac861b9933aede5a1b1423824c9a499ec9d21893d88faff3c6d7c67e43b711a5f27e90f5d911a7c39c94a71526b38fb00003cd435fdabd30cb95992476b460fc1206efbe35375ae9b80ba09fd50fe9325d96e4a42c8f9e2474da0fd2bbf00bd5ad56e768871a3c91d94fd68dc506d4d55dcf4c3db64828137d9b790623b877f493ae18b7e3c4203cbe722503b039c1154d3f34c0e1eec04f2ea3759549f286c78062d8c8cda389fbbe736e080199f9377acff308939698a9998cc082150907ba92006a67ca5b6cef1bae3bc0e88bfddb731c69a957834d64c36e16621308a8ba515276c1152cf9f454ad4fd30b7bbd8cbc6658b37dca961415e38b660933ff7aa933027a03f938ebbf78025af8afe52d5f56f7962ebb0d810a12dd6e12b70a61db51257eed51c8d93e6c5480a272a69f54c4135aab79ed48a89035d03bfd4f43000203d97e52f68d5e6ea55bc80d8fecec044c46182fcd344e6e240b2dd8c8f0b921c833572d1cf517cca3abd4ec74ecd1de7412533b127a0a36762cd883df111478025af8afe52d5f509a779a15bee5921db7a439a33bc2adb42c864ff9c78631743ef9c6355b1d5b1a71eb35003383300a7908ed1cc33175e22d4953d911c61c722b277ced54cf81c66237e6d5e3ba5575749f1160f04ca8f4d96a6ee6e8cd7aaca35ee1689adb195e6f7764fb2ccf722159a78e845b9960a7a01e9bd1922df20c2182ee55005f885ee1c4565e0b20bb27fe72d478bffd67824be7ce605a58f90bd8aea61afb0e07e95f4485876addaffb944395c75e9fd2794ea3756498f7b23b73e94f5b42a0bf7166741bddc2c7cf48955893be4294eaa75ffaab5977da417b944395c75e9fd2720ff92cc8544aa95ba5b50aeeee7d04cdc5dc3fc6ed0a336e5408777a44d100a4716d7bd2e96bd37c59566241ae70929d2c7888b21561f841cfebbf2956fe5e370009b7b732b38cbf575b1892b8015646da526c08f5aede24b10409525ef117ddadf338155c483c96f7067dbfbe33e7311b3c0d5dafe1864cb1232f021e134e339cc3fcbefbbf79b5f871ca3c41deb6d8e4e72c5e517ddc5aa31c0df836c52ec3954085f7e07b8f5b9c8c612250630f50dd149a53b8c76e0ede6d3a8c8a64286f1a3053f2953661ad76fc120002e37eb8689088fb1f63efa5387f79b37c2458e26f3a0fcab966dfc6f7067dbfbe33e73d9e3612640ab0e8ab9769ba7a28ffa5ef228ed91c5a3b55c2a0947f62af17c14ec8109e9438e04d8b467ffa0eb3fd115114e9ae938d9d2db097cb75f53432ec1f2e09b65c92971376c5887619862cd61cd4279c7ebd1382a9a71e1a0c78a61a3f228ed91c5a3b55caddeb044cceb8fced043736d5a379d0a981031f917b9fdd18ac2dce0715326a52c9c560e6904c8ffc392a47f6ff8cf476917ba6c860d94c6d898b0a932b8ca3220182ef512d0b2bd4434eca3d3850702ceafdfb6d8df967d556be5b200c64ac6cdb4bce6f188779195faea5686df0ac814be4723c58143ba853b565847c3024f4e5fe9af665d77d6bb4613d3e7f17720a103dbb70ad72faa75ed04a6add716865d6826f099f60a42bb4613d3e7f177204434eca3d38507022f4106d9e554ce72a3f00805e77adcb9c284dc0c49414e17b2b77caf0db799e7c81cfde44e50ef46b5c1e8184d09ace4ed4440a3507fb07ca64d0e3053bbbfe5bda2fd0fa2325048cab7a12a8a7e0db8e6524580ce36bd13e367e679d1b44fbd11755b46cfe9cf0ef228ed91c5a3b55c230878d5e2858dbe5541609ff61393391463010060cd522559fb7f37518db0533707419ad07873af8c3908b57432661cce264cba808d9a036f183caf0d5e1f585fb113aadd992d1d2c9c560e6904c8ffcc9bba44c7354243995761dcd3dd41aab1617b8d761f0cafa2891e692ba2e27f99e514203827ede87362ffbae479a1d61a44dd230af35a1768ab380270597d2c1e130395604371a04633de93963fc630eca3c4e735b31b9899372eb650481379afea8d7e1de9fabd1273a43ee1d8fef7a290af978b70e643b2212cd19f799d3b097cb75f53432ec167033a4f76fc38db18f3498c1774a409ec915d26c3e4422cc7999d1371729b6b38fb9109b2c954eef228ed91c5a3b55cbb72b2a54fc832263dea93168d19050580bdba41fc6a383a5e7d6d71f77438edcab7a12a8a7e0db80bc50ddd57a0e1bf87be3df1eee5c8bcbb72b2a54fc83226e6c5c5f9db26304d3707419ad07873afbca1fdf92b9062c54ddd752bfd5575330bc50ddd57a0e1bfbd8aa8c068561041097cb75f53432ec1384148d19d49742f0aac45029bbb13b7bca1fdf92b9062c5378427d11db4dc7dc81cfde44e50ef465fb113aadd992d1d48b536e033d8ac50c8c1a33b8630404ed41f35329fc9a1f4c2a9c5aa3f3ab48c406cd1738278417cd83db439c791a0aaab848f0b6837264c330194c61dc4ad6ab087a63fa21bcd3f925682861a1509923b22d616375a3b851819e0b3d20a35fcffff9b75de61143fd1f7da3a2f8471518dbdb68e58e9375057612c28fefc5421";
+		String key = "22, 57, -46, 53, 12, -16, -101, -99";
+		String enContent = EncryptTool.getEnCode(str, key);//加密
+		//System.out.println(enContent);//输出密文8d8094cd86d2418285e8565099c90ae491ebfbe10dbb64117e4e297cddf4a81f8a5407246e4f17a4551891191ddbf853
+		//System.out.println(getDeCode(enContent, key));//输出解密后的字符串
+		
+		//byte[] keyBytes = {22, 57, -46, 53, 12, -16, -101, -98}//22, 57, -46, 53, 12, -16, -101, -98
+		//byte[] keyBytes =  EncryptTool.generateSecretKey(method);
+	//	byte[] keyBytes =getBytesFromString(key);
+		//byte[] content = "abcdr*(*%^^%%!$+_#@#-)(恒</>".getBytes(code);//加密的正文
+		//String enContent1 =encode(encrypt(content, keyBytes, method));//加密
+		//System.out.println(enContent1);//密文
+		System.out.println("解密后:"+getDeCode(encStr, key));//解密
+		//byte[] bianmahou = decode(enContent);//密文转为byte[]
+		
+		//String deContent =encode(decrypt(bianmahou, keyBytes, method));//解密
+		//System.out.println(new String(decode(deContent)));
+		
+		 
+	}
+	/**
+	 * 更新现有密钥文件
+	 * @param key密钥
+	 */
+	public static void updateKeyFile(String key){
+		URL url =  EncryptTool.class.getResource(key_file_path);//现有的密钥文件
+	     String fileName = url.getPath();//密钥文件路径
+	     File file = new File(fileName);
+	   //  file.deleteOnExit();//删除现有的密钥文件
+	     createKeyFile(key, fileName);//生成密钥文件
+	}
+	/**
+	 * 通过文件名生成密钥文件
+	 * @param key密钥
+	 * @param 密钥文件
+	 */
+	private static void createKeyFile(String key,String fileName){
+		String newDesKeyStr = key;
+	     try
+	     {
+	         DESKeySpec dks1 = new DESKeySpec(hexStringToBytes(newDesKeyStr));
+	         javax.crypto.SecretKey key1 = SecretKeyFactory.getInstance("DES").generateSecret(dks1);
+	         FileOutputStream fos = null;
+	         try
+	         {
+	             fos = new FileOutputStream(fileName, false);
+	         }
+	         catch(Exception e)
+	         {
+	             String parentName = (new File(fileName)).getParent();
+	             if(parentName != null)
+	             {
+	                 File parentDir = new File(parentName);
+	                 if(!parentDir.exists() && parentDir.mkdirs())
+	                     fos = new FileOutputStream(fileName, false);
+	                 else
+	                     throw e;
+	             } else
+	             {
+	                 throw e;
+	             }
+	         }
+	         ObjectOutputStream oos = new ObjectOutputStream(fos);
+	         oos.writeObject(key1);
+	         fos.close();
+	     }
+	     catch(Exception e)
+	     {
+	    	 log.error("生成密钥文件异常",e);
+	     }
+	}
+	
+	private static byte[] hexStringToBytes(String hexString)
+	 {
+	     if(hexString == null || hexString.equals(""))
+	         return null;
+	     hexString = hexString.toUpperCase();
+	     int length = hexString.length() / 2;
+	     char hexChars[] = hexString.toCharArray();
+	     byte d[] = new byte[length];
+	     for(int i = 0; i < length; i++)
+	     {
+	         int pos = i * 2;
+	         d[i] = (byte)(charToByte(hexChars[pos]) << 4 | charToByte(hexChars[pos + 1]));
+	     }
+
+	     return d;
+	 }
+	
+	 private static byte charToByte(char c)
+	 {
+	     return (byte)"0123456789ABCDEF".indexOf(c);
+	 }
+
+}
